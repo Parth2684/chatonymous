@@ -15,37 +15,64 @@ datasource db {
 }
 
 model User {
-  id          String  @id @default(uuid())
-  privateKey String @unique
-  publicKey  String @unique
-  username   String @unique
-  createdAt   DateTime  @default(now())
-  profilePicture  String  
-  contacts Contact[]
-  groups  GroupsOnUser[]
+  id             String         @id @default(uuid())
+  privateKey     String         @unique
+  publicKey      String         @unique
+  username       String         @unique
+  createdAt      DateTime       @default(now())
+  profilePicture String
+  contacts       Contact[]
+  groups         GroupsOnUser[]
+  privateChatsA  PrivateChat[]  @relation("userARelation")
+  privateChatsB  PrivateChat[]  @relation("userBRelation")
+  groupChats     GroupChat[]
 }
 
 model Contact {
-  id  String  @id @default(uuid())
-  userId  String 
-  User    User  @relation(fields: [userId], references: [id])
+  id     String @id @default(uuid())
+  userId String
+  User   User   @relation(fields: [userId], references: [id])
 }
 
-model Group  {
-  id  String  @id @default(uuid())
-  name  String
-  users  GroupsOnUser[]
+model Group {
+  id        String         @id @default(uuid())
+  name      String
+  users     GroupsOnUser[]
+  groupCHat GroupChat[]
 }
 
 model GroupsOnUser {
-  userId  String  
-  user  User  @relation(fields: [userId], references: [id])
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
   groupId String
-  group Group @relation(fields: [groupId], references: [id])
+  group   Group  @relation(fields: [groupId], references: [id])
+
   @@id([userId, groupId])
 }
 
 model PrivateChat {
-  id  String  @id @default(uuid())
-  
+  id      String @id @default(uuid())
+  message String
+  userAId String
+  userBId String
+  sentBy  SentBy
+
+  userA User @relation("userARelation", fields: [userAId], references: [id])
+  userB User @relation("userBRelation", fields: [userBId], references: [id])
+
+  @@unique([userAId, userBId])
+}
+
+enum SentBy {
+  UserA
+  UserB
+}
+
+model GroupChat {
+  id       String @id @default(uuid())
+  groupId  String @unique
+  group    Group  @relation(fields: [groupId], references: [id])
+  message  String
+  sentById String
+  sentBy   User   @relation(fields: [sentById], references: [id])
 }
